@@ -94,8 +94,8 @@ const App = () => {
 
    return (
       <main className="container">
-         <MarkerList activeQuestId={activeQuestId} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId} />
-         <div style={{ width: "80%" }}>
+         <MarkerList activeQuestId={activeQuestId} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId || ""} />
+         <div className="mapWrapper">
             <Map
                markers={activeQuest?.markers}
                addMarker={addMarkerToQuest}
