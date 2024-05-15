@@ -6,7 +6,7 @@ const questsCollection = collection(db, "quests");
 
 export const addQuestToFirestore = async (quest: IQuest) => {
    try {
-      const questDoc = doc(collection(db, "quests"), quest.id.toString());
+      const questDoc = doc(collection(db, "quests"), quest.id);
       await setDoc(questDoc, quest);
    } catch (e) {
       console.error("Error adding document: ", e);
@@ -15,16 +15,16 @@ export const addQuestToFirestore = async (quest: IQuest) => {
 
 export const updateQuestInFirestore = async (quest: IQuest) => {
    try {
-      const questDoc = doc(db, "quests", quest.id.toString());
+      const questDoc = doc(db, "quests", quest.id);
       await updateDoc(questDoc, { ...quest });
    } catch (e) {
       console.error("Error updating document: ", e);
    }
 };
 
-export const deleteQuestFromFirestore = async (questId: number) => {
+export const deleteQuestFromFirestore = async (questId: string) => {
    try {
-      const questDoc = doc(db, "quests", questId.toString());
+      const questDoc = doc(db, "quests", questId);
       await deleteDoc(questDoc);
    } catch (e) {
       console.error("Error deleting document: ", e);

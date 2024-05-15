@@ -5,6 +5,7 @@ import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
 import { GeoPoint } from "firebase/firestore";
 import { IQuest } from "./types";
 import { fetchQuestsFromFirestore, updateQuestInFirestore } from "./firebaseActions";
+import { v4 as uuidv4 } from "uuid";
 
 const App = () => {
    const [quests, setQuests] = useState<IQuest[]>([]);
@@ -13,13 +14,15 @@ const App = () => {
       const fetchAndSetQuests = async () => {
          const questsFromFirestore = await fetchQuestsFromFirestore();
          setQuests(questsFromFirestore as IQuest[]);
-         console.log(questsFromFirestore);
+         if (questsFromFirestore.length > 0) {
+            setActiveQuestId(questsFromFirestore[0].id);
+         }
       };
 
       fetchAndSetQuests();
    }, []);
 
-   const [activeQuestId, setActiveQuestId] = useState<number | null>(0);
+   const [activeQuestId, setActiveQuestId] = useState<string | null>("");
 
    const addMarkerToQuest = async (e: MapLayerMouseEvent) => {
       if (activeQuestId === null) return;
@@ -28,8 +31,10 @@ const App = () => {
          const updatedQuests = prevQuests.map((quest) => {
             if (quest.id === activeQuestId) {
                const newMarker = {
-                  id: quest.markers.length,
+                  id: uuidv4(),
+                  number: quest.markers.length + 1,
                   location: new GeoPoint(e.lngLat.lat, e.lngLat.lng),
+                  timestamp: new Date(),
                };
                return { ...quest, markers: [...quest.markers, newMarker] };
             } else {
@@ -46,7 +51,7 @@ const App = () => {
       });
    };
 
-   const deleteMarker = (markerId: number, questId: number, event: React.MouseEvent) => {
+   const deleteMarker = (markerId: string, questId: string, event: React.MouseEvent) => {
       event.stopPropagation();
       setQuests((prevQuests) => {
          const updatedQuests = prevQuests.map((quest) => {
@@ -66,7 +71,7 @@ const App = () => {
       });
    };
 
-   const onMarkerDragEnd = (e: MarkerDragEvent, markerId: number) => {
+   const onMarkerDragEnd = (e: MarkerDragEvent, markerId: string) => {
       setQuests((prevQuests) => {
          const updatedQuests = prevQuests.map((quest) => {
             if (quest.id === activeQuestId) {
@@ -94,12 +99,12 @@ const App = () => {
 
    return (
       <main className="container">
-         <MarkerList activeQuestId={activeQuestId} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId || ""} />
+         <MarkerList activeQuestId={activeQuestId || null} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId} />
          <div className="mapWrapper">
             <Map
                markers={activeQuest?.markers}
                addMarker={addMarkerToQuest}
-               deleteMarker={(markerId, event) => deleteMarker(markerId, activeQuest?.id as number, event)}
+               deleteMarker={(markerId, event) => deleteMarker(markerId, activeQuest?.id || '', event)}
                onMarkerDragEnd={onMarkerDragEnd}
             />
          </div>

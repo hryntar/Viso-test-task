@@ -3,8 +3,8 @@ import { IMarker } from "./types";
 
 interface MapMarkerProps {
    marker: IMarker;
-   deleteMarker: (id: number, event: React.MouseEvent) => void;
-   onMarkerDragEnd: (e: MarkerDragEvent, questId: number) => void;
+   deleteMarker: (id: string, event: React.MouseEvent) => void;
+   onMarkerDragEnd: (e: MarkerDragEvent, questId: string) => void;
 }
 
 const MapMarker = ({ marker, deleteMarker, onMarkerDragEnd }: MapMarkerProps) => {
@@ -19,7 +19,7 @@ const MapMarker = ({ marker, deleteMarker, onMarkerDragEnd }: MapMarkerProps) =>
       >
          <div className="marker-container" onClick={(e) => deleteMarker(marker.id, e)}>
             <img width={40} src="/marker.svg" />
-            <span style={{ position: 'absolute', top: '12%', left: '40%', color: 'white', fontWeight: 'bold' }}>{marker.id + 1}</span>
+            <span style={{ position: 'absolute', top: '12%', left: '40%', color: 'white', fontWeight: 'bold' }}>{marker.number}</span>
             <div className="delete-marker">❌</div>
          </div>
       </Marker>

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { IQuest } from "./types";
 import { addQuestToFirestore, deleteQuestFromFirestore } from "./firebaseActions";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
-   setActiveQuestId: React.Dispatch<React.SetStateAction<number | null>>;
+   setActiveQuestId: React.Dispatch<React.SetStateAction<string | null>>;
    setQuests: React.Dispatch<React.SetStateAction<IQuest[]>>;
    quests: IQuest[];
-   activeQuestId: number | null;
+   activeQuestId: string | null;
 }
 
 const MarkerList = ({ activeQuestId, setActiveQuestId, setQuests, quests }: Props) => {
@@ -14,16 +15,17 @@ const MarkerList = ({ activeQuestId, setActiveQuestId, setQuests, quests }: Prop
 
    const addQuest = () => {
       const newQuest = {
-         id: quests.length,
+         id: uuidv4(),
          name: newQuestName,
          markers: [],
       };
       setQuests([...quests, newQuest]);
       setNewQuestName("");
       addQuestToFirestore(newQuest);
+      setActiveQuestId(newQuest.id);
    };
 
-   const deleteQuest = (questId: number) => {
+   const deleteQuest = (questId: string) => {
       setQuests(quests.filter((q) => q.id !== questId));
       deleteQuestFromFirestore(questId);
    };

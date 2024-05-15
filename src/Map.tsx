@@ -10,8 +10,8 @@ const ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 interface Props {
    markers: IMarker[] | undefined;
    addMarker: (e: MapLayerMouseEvent) => void;
-   deleteMarker: (id: number, event: React.MouseEvent) => void;
-   onMarkerDragEnd: (e: MarkerDragEvent, questId: number) => void;
+   deleteMarker: (id: string, event: React.MouseEvent) => void;
+   onMarkerDragEnd: (e: MarkerDragEvent, questId: string) => void;
 }
 
 const Map = ({ markers, addMarker, deleteMarker, onMarkerDragEnd }: Props) => {

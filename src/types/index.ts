@@ -8,12 +8,14 @@ export interface IViewState extends ViewState {
 }
 
 export interface IMarker {
-   id: number;
+   id: string;
+   number: number;
    location: GeoPoint;
+   timestamp: Date;
 }
 
 export interface IQuest {
-   id: number;
+   id: string;
    name: string;
    markers: IMarker[];
 }
