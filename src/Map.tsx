@@ -34,8 +34,8 @@ const Map = ({ markers, addMarker, deleteMarker, onMarkerDragEnd }: Props) => {
           <Marker
             key={marker.id}
             draggable
-            longitude={marker.longitude}
-            latitude={marker.latitude}
+            longitude={marker.location.longitude}
+            latitude={marker.location.latitude}
             anchor="bottom"
             onDragEnd={(event) => onMarkerDragEnd(event, marker.id)}
           >

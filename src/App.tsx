@@ -3,18 +3,27 @@ import Map from "./Map";
 import { useState } from "react";
 import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
 import { IMarker } from "./types";
+import { db } from "./config/firebase";
+import { GeoPoint, addDoc, collection, serverTimestamp, updateDoc } from "firebase/firestore";
 
 const App = () => {
    const [markers, setMarkers] = useState<IMarker[]>([]);
 
-   const addMarker = (e: MapLayerMouseEvent) => {
+   const addMarker = async (e: MapLayerMouseEvent) => {
       const newMarker = {
-         id: markers.length,
-         longitude: e.lngLat.lng,
-         latitude: e.lngLat.lat,
+        id: markers.length,
+        location: new GeoPoint(e.lngLat.lat, e.lngLat.lng),
       };
       setMarkers([...markers, newMarker]);
-   };
+    
+      // Add the new marker to Firestore without a timestamp
+      const docRef = await addDoc(collection(db, "quests"), newMarker);
+    
+      // Update the marker with the server timestamp
+      updateDoc(docRef, {
+        timestamp: serverTimestamp()
+      });
+    };
 
    const deleteMarker = (id: number, event: React.MouseEvent) => {
       event.stopPropagation();
@@ -22,7 +31,7 @@ const App = () => {
    };
 
    const onMarkerDragEnd = (e: MarkerDragEvent, id: number) => {
-      setMarkers(markers.map((marker) => (marker.id === id ? { ...marker, longitude: e.lngLat.lng, latitude: e.lngLat.lat } : marker)));
+      setMarkers(markers.map((marker) => (marker.id === id ? { ...marker, location: new GeoPoint(e.lngLat.lat, e.lngLat.lng) } : marker)));
    };
 
    return (
@@ -32,7 +41,7 @@ const App = () => {
             <ul>
                {markers.map((marker) => (
                   <li key={marker.id}>
-                     Точка {marker.id + 1}: ({marker.latitude.toFixed(2)}, {marker.longitude.toFixed(2)})
+                     Точка {marker.id + 1}: ({marker.location.latitude}, {marker.location.longitude})
                   </li>
                ))}
             </ul>
