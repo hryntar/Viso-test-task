@@ -1,4 +1,4 @@
-import MarkerList from "./MarkerList";
+// import MarkerList from "./MarkerList";
 import Map from "./Map";
 import { useState } from "react";
 import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
