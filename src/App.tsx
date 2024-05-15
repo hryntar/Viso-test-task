@@ -1,40 +1,31 @@
 import MarkerList from "./MarkerList";
 import Map from "./Map";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
 import { GeoPoint } from "firebase/firestore";
-import { IMarker, IQuest } from "./types";
+import { IQuest } from "./types";
+import { fetchQuestsFromFirestore, updateQuestInFirestore } from "./firebaseActions";
 
 const App = () => {
-   const [quests, setQuests] = useState<IQuest[]>([
-      {
-         id: 0,
-         name: "Quest 1",
-         markers: [
-            { id: 0, location: { latitude: 49.842957, longitude: 24.031111 } },
-            { id: 1, location: { latitude: 49.843257, longitude: 24.031111 } },
-            { id: 2, location: { latitude: 49.843357, longitude: 24.031111 } },
-         ],
-      },
-      {
-         id: 1,
-         name: "Quest 2",
-         markers: [
-            { id: 0, location: { latitude: 49.842957, longitude: 24.031111 } },
-            { id: 1, location: { latitude: 49.843257, longitude: 24.031111 } },
-            { id: 2, location: { latitude: 49.843357, longitude: 24.031111 } },
-         ],
-      },
-   ]);
+   const [quests, setQuests] = useState<IQuest[]>([]);
 
-   const [markers, setMarkers] = useState<IMarker[]>(); // Стан для маркерів
-   const [activeQuestId, setActiveQuestId] = useState<number | null>(0); // Стан для активного квесту
+   useEffect(() => {
+      const fetchAndSetQuests = async () => {
+         const questsFromFirestore = await fetchQuestsFromFirestore();
+         setQuests(questsFromFirestore as IQuest[]);
+         console.log(questsFromFirestore);
+      };
+
+      fetchAndSetQuests();
+   }, []);
+
+   const [activeQuestId, setActiveQuestId] = useState<number | null>(0);
 
    const addMarkerToQuest = async (e: MapLayerMouseEvent) => {
-      if (activeQuestId === null) return; // Якщо жоден квест не активний, не додаємо маркер
+      if (activeQuestId === null) return;
 
       setQuests((prevQuests) => {
-         return prevQuests.map((quest) => {
+         const updatedQuests = prevQuests.map((quest) => {
             if (quest.id === activeQuestId) {
                const newMarker = {
                   id: quest.markers.length,
@@ -45,16 +36,58 @@ const App = () => {
                return quest;
             }
          });
+
+         const updatedQuest = updatedQuests.find((quest) => quest.id === activeQuestId);
+         if (updatedQuest) {
+            updateQuestInFirestore(updatedQuest);
+         }
+
+         return updatedQuests;
       });
    };
 
-   const deleteMarker = (id: number, event: React.MouseEvent) => {
+   const deleteMarker = (markerId: number, questId: number, event: React.MouseEvent) => {
       event.stopPropagation();
-      setMarkers(markers?.filter((marker) => marker.id !== id));
+      setQuests((prevQuests) => {
+         const updatedQuests = prevQuests.map((quest) => {
+            if (quest.id === questId) {
+               return { ...quest, markers: quest.markers.filter((marker) => marker.id !== markerId) };
+            } else {
+               return quest;
+            }
+         });
+
+         const updatedQuest = updatedQuests.find((quest) => quest.id === questId);
+         if (updatedQuest) {
+            updateQuestInFirestore(updatedQuest);
+         }
+
+         return updatedQuests;
+      });
    };
 
-   const onMarkerDragEnd = (e: MarkerDragEvent, id: number) => {
-      setMarkers(markers?.map((marker) => (marker.id === id ? { ...marker, location: new GeoPoint(e.lngLat.lat, e.lngLat.lng) } : marker)));
+   const onMarkerDragEnd = (e: MarkerDragEvent, markerId: number) => {
+      setQuests((prevQuests) => {
+         const updatedQuests = prevQuests.map((quest) => {
+            if (quest.id === activeQuestId) {
+               return {
+                  ...quest,
+                  markers: quest.markers.map((marker) =>
+                     marker.id === markerId ? { ...marker, location: new GeoPoint(e.lngLat.lat, e.lngLat.lng) } : marker
+                  ),
+               };
+            } else {
+               return quest;
+            }
+         });
+
+         const updatedQuest = updatedQuests.find((quest) => quest.id === activeQuestId);
+         if (updatedQuest) {
+            updateQuestInFirestore(updatedQuest);
+         }
+
+         return updatedQuests;
+      });
    };
 
    const activeQuest = quests.find((quest) => quest.id === activeQuestId);
@@ -63,7 +96,12 @@ const App = () => {
       <main className="container">
          <MarkerList activeQuestId={activeQuestId} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId} />
          <div style={{ width: "80%" }}>
-            <Map markers={activeQuest?.markers} addMarker={addMarkerToQuest} deleteMarker={deleteMarker} onMarkerDragEnd={onMarkerDragEnd} />
+            <Map
+               markers={activeQuest?.markers}
+               addMarker={addMarkerToQuest}
+               deleteMarker={(markerId, event) => deleteMarker(markerId, activeQuest?.id as number, event)}
+               onMarkerDragEnd={onMarkerDragEnd}
+            />
          </div>
       </main>
    );

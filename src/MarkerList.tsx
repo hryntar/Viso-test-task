@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { IQuest } from "./types";
+import { addQuestToFirestore, deleteQuestFromFirestore } from "./firebaseActions";
 
 interface Props {
    setActiveQuestId: React.Dispatch<React.SetStateAction<number | null>>;
@@ -9,7 +10,7 @@ interface Props {
 }
 
 const MarkerList = ({ activeQuestId, setActiveQuestId, setQuests, quests }: Props) => {
-   const [newQuestName, setNewQuestName] = useState(""); // Стан для введення імені нового квесту
+   const [newQuestName, setNewQuestName] = useState("");
 
    const addQuest = () => {
       const newQuest = {
@@ -18,14 +19,26 @@ const MarkerList = ({ activeQuestId, setActiveQuestId, setQuests, quests }: Prop
          markers: [],
       };
       setQuests([...quests, newQuest]);
-      setNewQuestName(""); // Очистити поле введення після додавання квесту
+      setNewQuestName("");
+      addQuestToFirestore(newQuest);
+   };
+
+   const deleteQuest = (questId: number) => {
+      setQuests(quests.filter((q) => q.id !== questId));
+      deleteQuestFromFirestore(questId);
    };
 
    return (
       <div>
          <h3>Quests list:</h3>
          <div>
-            <input className="addQuestInp" type="text" placeholder="Quest name" value={newQuestName} onChange={(e) => setNewQuestName(e.target.value)} />
+            <input
+               className="addQuestInp"
+               type="text"
+               placeholder="Quest name"
+               value={newQuestName}
+               onChange={(e) => setNewQuestName(e.target.value)}
+            />
             <button className="addQuestBtn" type="button" onClick={addQuest}>
                Add quest
             </button>
@@ -39,6 +52,7 @@ const MarkerList = ({ activeQuestId, setActiveQuestId, setQuests, quests }: Prop
                         onClick={() => setActiveQuestId(quest.id === activeQuestId ? null : quest.id)}
                      >
                         {quest.name}
+                        <span onClick={() => deleteQuest(quest.id)}>✖</span>
                      </button>
                   </h4>
                   {quest.id === activeQuestId ? (

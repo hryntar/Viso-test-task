@@ -1,8 +1,9 @@
 import "./App.css";
 import {  useState } from "react"; 
-import { MapLayerMouseEvent, Map as MapWrapper, Marker, MarkerDragEvent } from "react-map-gl";
+import { MapLayerMouseEvent, Map as MapWrapper, MarkerDragEvent } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css"; 
 import { IMarker, IViewState } from "./types";
+import MapMarker from "./MapMarker";
 
 const ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN; 
 
@@ -10,7 +11,7 @@ interface Props {
    markers: IMarker[] | undefined;
    addMarker: (e: MapLayerMouseEvent) => void;
    deleteMarker: (id: number, event: React.MouseEvent) => void;
-   onMarkerDragEnd: (e: MarkerDragEvent, id: number) => void;
+   onMarkerDragEnd: (e: MarkerDragEvent, questId: number) => void;
 }
 
 const Map = ({ markers, addMarker, deleteMarker, onMarkerDragEnd }: Props) => {
@@ -31,19 +32,7 @@ const Map = ({ markers, addMarker, deleteMarker, onMarkerDragEnd }: Props) => {
         onClick={addMarker}
       >
         {markers?.map((marker) => (
-          <Marker
-            key={marker.id}
-            draggable
-            longitude={marker.location.longitude}
-            latitude={marker.location.latitude}
-            anchor="bottom"
-            onDragEnd={(event) => onMarkerDragEnd(event, marker.id)}
-          >
-            <div onClick={(e) => deleteMarker(marker.id, e)}>
-              <img width={40} src="/marker.svg" />
-              <span style={{ position: 'absolute', top: '12%', left: '40%', color: 'white', fontWeight: 'bold' }}>{marker.id + 1}</span>
-            </div>
-          </Marker>
+          <MapMarker key={marker.id} marker={marker} deleteMarker={deleteMarker} onMarkerDragEnd={onMarkerDragEnd} />
         ))}
       </MapWrapper>
     </div>
