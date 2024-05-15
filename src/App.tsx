@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import MarkerList from "./MarkerList";
+import Map from "./Map";
+import { useState } from "react";
+import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
+import { IMarker } from "./types";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+   const [markers, setMarkers] = useState<IMarker[]>([]);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+   const addMarker = (e: MapLayerMouseEvent) => {
+      const newMarker = {
+         id: markers.length,
+         longitude: e.lngLat.lng,
+         latitude: e.lngLat.lat,
+      };
+      setMarkers([...markers, newMarker]);
+   };
 
-export default App
+   const deleteMarker = (id: number, event: React.MouseEvent) => {
+      event.stopPropagation();
+      setMarkers(markers.filter((marker) => marker.id !== id));
+   };
+
+   const onMarkerDragEnd = (e: MarkerDragEvent, id: number) => {
+      setMarkers(markers.map((marker) => (marker.id === id ? { ...marker, longitude: e.lngLat.lng, latitude: e.lngLat.lat } : marker)));
+   };
+
+   return (
+      <main style={{ display: "flex" }}>
+         <div style={{ width: "20%", height: "800px", overflow: "auto" }}>
+            <h3>Список точок:</h3>
+            <ul>
+               {markers.map((marker) => (
+                  <li key={marker.id}>
+                     Точка {marker.id + 1}: ({marker.latitude.toFixed(2)}, {marker.longitude.toFixed(2)})
+                  </li>
+               ))}
+            </ul>
+         </div>
+         <div style={{ width: "80%" }}>
+            <Map markers={markers} addMarker={addMarker} deleteMarker={deleteMarker} onMarkerDragEnd={onMarkerDragEnd} />
+         </div>
+      </main>
+   );
+};
+
+export default App;
