@@ -7,7 +7,7 @@ import { IMarker, IViewState } from "./types";
 const ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN; 
 
 interface Props {
-   markers: IMarker[];
+   markers: IMarker[] | undefined;
    addMarker: (e: MapLayerMouseEvent) => void;
    deleteMarker: (id: number, event: React.MouseEvent) => void;
    onMarkerDragEnd: (e: MarkerDragEvent, id: number) => void;
@@ -21,16 +21,16 @@ const Map = ({ markers, addMarker, deleteMarker, onMarkerDragEnd }: Props) => {
    });
 
    return (
-      <div style={{ width: "100%" }}>
+      <div className="map">
       <MapWrapper
         mapboxAccessToken={ACCESS_TOKEN}
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
-        style={{ width: "100%", height: 800 }}
+        style={{ width: "100%", height: "100%" }}
         mapStyle="mapbox://styles/mapbox/streets-v9"
         onClick={addMarker}
       >
-        {markers.map((marker) => (
+        {markers?.map((marker) => (
           <Marker
             key={marker.id}
             draggable

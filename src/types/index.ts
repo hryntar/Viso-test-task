@@ -1,4 +1,4 @@
-import { GeoPoint } from "firebase/firestore";
+// import { GeoPoint } from "firebase/firestore";
 import { ViewState } from "react-map-gl";
 
 export interface IViewState extends ViewState {
@@ -9,5 +9,14 @@ export interface IViewState extends ViewState {
 
 export interface IMarker {
    id: number;
-   location: GeoPoint;
+   location: {
+      latitude: number;
+      longitude: number;
+   };
+}
+
+export interface IQuest {
+   id: number;
+   name: string;
+   markers: IMarker[];
 }

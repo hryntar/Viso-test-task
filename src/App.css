@@ -1,13 +1,94 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.container {
+   display: flex;
+   justify-content: space-between;
+   flex-wrap: wrap;
+   width: 100;
+}
+
+.map {
+   width: 100%;
+   height: 100vh;
+}
+
+.questBtn {
+   padding: 15px 10px;
+   width: 100%;
+   background: transparent;
+   outline: none;
+   border: 0;
+   text-align: left;
+   border-radius: 5px;
+   cursor: pointer;
+   transition: all 0.2s;
+}
+
+.questBtn._active {
+   background: #191919;
+}
+
+.questBtn:hover {
+   background: #191919;
+}
+
+ul {
+   list-style-type: none;
+   padding: 0;
 } 
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.marker {
+   padding: 10px;
+   border-radius: 5px;
+   margin-bottom: 10px;
+   transition: all 0.2s;
+   animation: fadeIn 0.3s ease;
+} 
+
+.marker:hover .marker::after {
+   opacity: 1;
+   transform: translate(0, 0);
+}
+@keyframes fadeIn {
+   0% {
+      opacity: 0;
+      transform: translate(-20px, 0px);
+   }
+   100% {
+      opacity: 1;
+      transform: translate(0px, 0px);
+   }
+}
+
+
+.info-text {
+   padding: 0 10px;
+   font-size: 14px;
+   border-radius: 5px;
+   animation: fadeIn 0.3s ease; 
+}
+
+.addQuestBtn {
+   padding: 10px;
+   background: #191919;
+   color: #fff;
+   border: 0;
+   border-radius: 5px;
+   border-top-left-radius: 0px;
+   border-bottom-left-radius: 0px;
+   cursor: pointer;
+   transition: all 0.2s;
+   background-color: field;
+   color: #676767;
+}
+
+.addQuestBtn:hover {
+   background: #000;
+}
+
+.addQuestInp {
+   padding: 10px;
+   border: 0;
+   border-top-left-radius: 5px;
+   border-bottom-left-radius: 5px;
+   margin-bottom: 10px;
 }
 
