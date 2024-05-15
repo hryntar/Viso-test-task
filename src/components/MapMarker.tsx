@@ -1,5 +1,5 @@
 import { Marker, MarkerDragEvent } from "react-map-gl";
-import { IMarker } from "./types";
+import { IMarker } from "../types";
 
 interface MapMarkerProps {
    marker: IMarker;

@@ -1,14 +1,21 @@
 import MarkerList from "./MarkerList";
 import Map from "./Map";
-import { useEffect, useState } from "react";
-import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MapLayerMouseEvent, MapRef, MarkerDragEvent } from "react-map-gl";
 import { GeoPoint } from "firebase/firestore";
-import { IQuest } from "./types";
-import { fetchQuestsFromFirestore, updateQuestInFirestore } from "./firebaseActions";
-import { v4 as uuidv4 } from "uuid";
+import { IQuest } from "../types";
+import { fetchQuestsFromFirestore, updateQuestInFirestore } from "../firebaseActions";
+import { v4 as uuidv4 } from "uuid"; 
 
 const App = () => {
+   const mapRef = useRef<MapRef>(null);
    const [quests, setQuests] = useState<IQuest[]>([]);
+   const [activeQuestId, setActiveQuestId] = useState<string | null>("");
+   const activeQuest = useMemo(() => quests.find((quest) => quest.id === activeQuestId), [quests, activeQuestId]);
+
+   const onSelectMarker = useCallback(({longitude, latitude}: Record<string, number>) => {
+      mapRef.current?.flyTo({center: [longitude, latitude], duration: 2000});
+    }, []);
 
    useEffect(() => {
       const fetchAndSetQuests = async () => {
@@ -18,13 +25,11 @@ const App = () => {
             setActiveQuestId(questsFromFirestore[0].id);
          }
       };
-
       fetchAndSetQuests();
    }, []);
 
-   const [activeQuestId, setActiveQuestId] = useState<string | null>("");
 
-   const addMarkerToQuest = async (e: MapLayerMouseEvent) => {
+   const addMarkerToQuest = async (e: MapLayerMouseEvent) => { 
       if (activeQuestId === null) return;
 
       setQuests((prevQuests) => {
@@ -95,16 +100,15 @@ const App = () => {
       });
    };
 
-   const activeQuest = quests.find((quest) => quest.id === activeQuestId);
-
    return (
       <main className="container">
-         <MarkerList activeQuestId={activeQuestId || null} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId} />
+         <MarkerList onSelectMarker={onSelectMarker} activeQuestId={activeQuestId || null} quests={quests} setQuests={setQuests} setActiveQuestId={setActiveQuestId} />
          <div className="mapWrapper">
-            <Map
+            <Map 
+               ref={mapRef}
                markers={activeQuest?.markers}
                addMarker={addMarkerToQuest}
-               deleteMarker={(markerId, event) => deleteMarker(markerId, activeQuest?.id || '', event)}
+               deleteMarker={(markerId, event) => deleteMarker(markerId, activeQuest?.id || "", event)}
                onMarkerDragEnd={onMarkerDragEnd}
             />
          </div>
