@@ -1,44 +1,63 @@
-import MarkerList from "./MarkerList";
-import Map from "./Map";
-import { useState } from "react";
-import { MapLayerMouseEvent, MarkerDragEvent } from "react-map-gl";
-import { IMarker } from "./types";
+import MarkerList from "./components/MarkerList";
+import Map from "./components/Map";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MapRef, MarkerDragEvent } from "react-map-gl";
+import { IQuest } from "./types";
+import { fetchQuestsFromFirestore } from "./firebaseActions";
+import { addMarkerToQuest, deleteMarker, onMarkerDragEnd } from "./questActions";
 
 const App = () => {
-   const [markers, setMarkers] = useState<IMarker[]>([]);
+   const mapRef = useRef<MapRef>(null);
+   const [quests, setQuests] = useState<IQuest[]>([]);
+   const [activeQuestId, setActiveQuestId] = useState<string | null>("");
+   const activeQuest = useMemo(() => quests.find((quest) => quest.id === activeQuestId), [quests, activeQuestId]);
 
-   const addMarker = (e: MapLayerMouseEvent) => {
-      const newMarker = {
-         id: markers.length,
-         longitude: e.lngLat.lng,
-         latitude: e.lngLat.lat,
+   const onSelectMarker = useCallback(({ longitude, latitude }: Record<string, number>) => {
+      mapRef.current?.flyTo({ center: [longitude, latitude], duration: 2000 });
+   }, []);
+
+   const addMarker = useCallback(addMarkerToQuest(activeQuestId, setQuests), [activeQuestId, setQuests]);
+
+   const deleteMarkerFromQuest = useCallback((markerId: string, event: React.MouseEvent) => {
+      if (activeQuest) {
+         deleteMarker(setQuests)(markerId, activeQuest.id, event);
+      }
+   }, [activeQuest, setQuests]);
+
+   const handleMarkerDragEnd = useCallback((e: MarkerDragEvent, markerId: string) => {
+      if (activeQuest) {
+         onMarkerDragEnd(activeQuestId, setQuests)(e, markerId);
+      }
+   }, [activeQuestId, setQuests, activeQuest]);
+
+   useEffect(() => {
+      const fetchAndSetQuests = async () => {
+         const questsFromFirestore = await fetchQuestsFromFirestore();
+         setQuests(questsFromFirestore as IQuest[]);
+         if (questsFromFirestore.length > 0) {
+            setActiveQuestId(questsFromFirestore[0].id);
+         }
       };
-      setMarkers([...markers, newMarker]);
-   };
-
-   const deleteMarker = (id: number, event: React.MouseEvent) => {
-      event.stopPropagation();
-      setMarkers(markers.filter((marker) => marker.id !== id));
-   };
-
-   const onMarkerDragEnd = (e: MarkerDragEvent, id: number) => {
-      setMarkers(markers.map((marker) => (marker.id === id ? { ...marker, longitude: e.lngLat.lng, latitude: e.lngLat.lat } : marker)));
-   };
+      fetchAndSetQuests();
+   }, []);
 
    return (
-      <main style={{ display: "flex" }}>
-         <div style={{ width: "20%", height: "800px", overflow: "auto" }}>
-            <h3>Список точок:</h3>
-            <ul>
-               {markers.map((marker) => (
-                  <li key={marker.id}>
-                     Точка {marker.id + 1}: ({marker.latitude.toFixed(2)}, {marker.longitude.toFixed(2)})
-                  </li>
-               ))}
-            </ul>
-         </div>
-         <div style={{ width: "80%" }}>
-            <Map markers={markers} addMarker={addMarker} deleteMarker={deleteMarker} onMarkerDragEnd={onMarkerDragEnd} />
+      <main className="container">
+         <MarkerList
+            onSelectMarker={onSelectMarker}
+            activeQuestId={activeQuestId || null}
+            quests={quests}
+            setQuests={setQuests}
+            setActiveQuestId={setActiveQuestId}
+         />
+         <div className="mapWrapper">
+            <Map
+               ref={mapRef}
+               markers={activeQuest?.markers}
+               addMarker={addMarker}
+               deleteMarker={deleteMarkerFromQuest}
+               onMarkerDragEnd={handleMarkerDragEnd}
+            />
          </div>
       </main>
    );
